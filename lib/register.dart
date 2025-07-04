@@ -1,52 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+class Register extends StatefulWidget {
+  const Register({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<Register> createState() => _RegisterState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterState extends State<Register> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
-      } on FirebaseAuthException catch (e) {
-        String message = 'Registration failed';
-        if (e.code == 'email-already-in-use') {
-          message = 'Already registered. Please log in';
-        } else if (e.code == 'weak-password') {
-          message = 'Password too weak. Minimum 6 characters required';
-        }
-        print(
-          'FirebaseAuthException during registration: ${e.code} - ${e.message}',
-        );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-      } catch (e) {
-        print('Exception during registration: $e');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Registration failed')));
-      } finally {
-        setState(() => _isLoading = false);
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      // Navigation handled by AuthWrapper
+    } on FirebaseAuthException catch (e) {
+      String message = 'Registration failed';
+      if (e.code == 'weak-password') {
+        message = 'Password should be at least 6 characters.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'Email already exists.';
       }
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -54,30 +47,36 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(
+        title: const Text('Register'),
+        backgroundColor: Colors.purple,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
+              const SizedBox(height: 60),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
                 validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return 'Please enter your email';
-                  if (!RegExp(
-                    r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$',
-                  ).hasMatch(value)) {
-                    return 'Enter a valid email';
+                  if (value == null || value.isEmpty) return 'Enter email';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Enter valid email';
                   }
                   return null;
                 },
@@ -85,30 +84,68 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) => value != null && value.length >= 6
-                    ? null
-                    : 'Password must be 6+ chars',
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () => setState(
+                        () => _isPasswordVisible = !_isPasswordVisible),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Enter password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _confirmPasswordController,
-                decoration: const InputDecoration(
+                controller: _confirmController,
+                obscureText: !_isConfirmPasswordVisible,
+                decoration: InputDecoration(
                   labelText: 'Confirm Password',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(_isConfirmPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () => setState(() =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                  ),
                 ),
-                obscureText: true,
-                validator: (value) => value != _passwordController.text
-                    ? 'Passwords do not match'
-                    : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Confirm password';
+                  }
+                  if (value != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               _isLoading
-                  ? const CircularProgressIndicator()
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                       child: const Text('Register'),
                     ),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: () =>
                     Navigator.pushReplacementNamed(context, '/login'),

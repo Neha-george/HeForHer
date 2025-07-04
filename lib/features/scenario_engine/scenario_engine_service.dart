@@ -6,6 +6,10 @@ class ScenarioEngineService {
 
   Future<List<Scenario>> fetchScenarios() async {
     final docs = await _firestore.getCollection('scenario_engine');
-    return docs.map((doc) => Scenario.fromMap(doc.id, doc.data())).toList();
+    return docs.where((doc) => doc != null).map((doc) {
+      final snapshot = doc
+          as dynamic; // Replace 'dynamic' with the actual type if known, e.g., QueryDocumentSnapshot
+      return Scenario.fromMap(snapshot.id, snapshot.data());
+    }).toList();
   }
 }
