@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'voice_of_her_provider.dart';
 import 'voice_story_tile.dart';
+import 'voice_story_model.dart';
 
 class VoiceOfHerScreen extends StatefulWidget {
   const VoiceOfHerScreen({super.key});
@@ -23,19 +24,57 @@ class _VoiceOfHerScreenState extends State<VoiceOfHerScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<VoiceOfHerProvider>(context);
 
+    final isLoading = provider.isLoading;
+    final error = provider.errorMessage;
+    final todayStory = provider.todayStory;
+    final allStories = provider.stories;
+
+    // Filter out today's story from the rest
+    final pastStories = todayStory == null
+        ? allStories
+        : allStories.where((s) => s.id != todayStory.id).toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Voice of Her')),
-      body: provider.isLoading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : provider.errorMessage != null
-          ? Center(child: Text(provider.errorMessage!))
-          : provider.stories.isEmpty
-          ? const Center(child: Text('No stories available.'))
-          : ListView.builder(
-              itemCount: provider.stories.length,
-              itemBuilder: (context, i) =>
-                  VoiceStoryTile(story: provider.stories[i]),
-            ),
+          : error != null
+              ? Center(child: Text(error))
+              : (allStories.isEmpty && todayStory == null)
+                  ? const Center(child: Text('No stories available.'))
+                  : RefreshIndicator(
+                      onRefresh: () => provider.refreshStories(),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          if (todayStory != null) ...[
+                            const Text(
+                              '✨ Today’s Voice',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            VoiceStoryTile(story: todayStory),
+                            const SizedBox(height: 24),
+                          ],
+                          if (pastStories.isNotEmpty) ...[
+                            const Text(
+                              '📚 Past Stories',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ...pastStories
+                                .map((story) => VoiceStoryTile(story: story))
+                                .toList(),
+                          ]
+                        ],
+                      ),
+                    ),
     );
   }
 }

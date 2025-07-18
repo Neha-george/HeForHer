@@ -3,13 +3,17 @@ class Scenario {
   final String prompt;
   final List<ScenarioChoice> choices;
 
-  Scenario({required this.id, required this.prompt, required this.choices});
+  Scenario({
+    required this.id,
+    required this.prompt,
+    required this.choices,
+  });
 
-  factory Scenario.fromMap(String id, Map<String, dynamic> data) {
+  factory Scenario.fromMap(Map<String, dynamic> data) {
     return Scenario(
-      id: id,
+      id: data['id'] ?? '',
       prompt: data['prompt'] ?? '',
-      choices: (data['choices'] as List<dynamic>)
+      choices: (data['choices'] as List<dynamic>? ?? [])
           .map((choice) => ScenarioChoice.fromMap(choice))
           .toList(),
     );

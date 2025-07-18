@@ -15,4 +15,40 @@ class FirestoreService {
       return [];
     }
   }
+
+  // Sets a document in a collection with given data
+  Future<void> setDocument(
+      String collectionPath, String docId, Map<String, dynamic> data) async {
+    try {
+      await _db.collection(collectionPath).doc(docId).set(data);
+    } catch (e) {
+      print('Error setting document: $e');
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> queryCollection(
+    String collectionPath, {
+    List<Map<String, dynamic>>? where,
+  }) async {
+    try {
+      CollectionReference<Map<String, dynamic>> collection =
+          _db.collection(collectionPath);
+      Query<Map<String, dynamic>> query = collection;
+
+      if (where != null) {
+        for (var condition in where) {
+          final field = condition['field'];
+          final isEqualTo = condition['isEqualTo'];
+          query = query.where(field, isEqualTo: isEqualTo);
+        }
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs;
+    } catch (e) {
+      print('Error querying collection: $e');
+      return [];
+    }
+  }
+  // Queries a collection with optional filters and returns documents
 }

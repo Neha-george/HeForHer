@@ -16,6 +16,15 @@ class MockVoiceOfHerProvider extends ChangeNotifier
   @override
   String? errorMessage = null;
 
+  @override
+  VoiceStory? get todayStory => stories.isNotEmpty ? stories.first : null;
+
+  @override
+  Future<void> refreshStories() async {
+    // Mock refreshStories implementation
+    await Future.delayed(Duration.zero);
+  }
+
   void loadWithStories() {
     stories = [
       VoiceStory(

@@ -7,8 +7,16 @@ plugins {
 
 android {
     namespace = "com.example.heforher"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973" // Set to match Firebase requirement
+    compileSdk = 34
+    ndkVersion = "27.0.12077973"
+
+    defaultConfig {
+        applicationId = "com.example.heforher"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -17,14 +25,6 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
-    defaultConfig {
-        applicationId = "com.example.heforher"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
     }
 
     buildTypes {
@@ -37,5 +37,3 @@ android {
 flutter {
     source = "../.."
 }
-
-apply(plugin = "com.google.gms.google-services")

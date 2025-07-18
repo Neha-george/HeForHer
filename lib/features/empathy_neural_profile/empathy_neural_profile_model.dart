@@ -1,10 +1,9 @@
 class EmpathyNeuralProfile {
-  final String userId;
-  final Map<String, int>
-  toneScores; // e.g. {'empathetic': 5, 'neutral': 2, 'aggressive': 1}
-  final List<String> blindSpots; // e.g. ['interrupting', 'tone-deaf']
-  final String preferredTone;
-  final List<String> feedbackHistory;
+  String userId;
+  Map<String, int> toneScores;
+  List<String> blindSpots;
+  String preferredTone;
+  List<String> feedbackHistory;
 
   EmpathyNeuralProfile({
     required this.userId,
@@ -33,6 +32,44 @@ class EmpathyNeuralProfile {
       'blindSpots': blindSpots,
       'preferredTone': preferredTone,
       'feedbackHistory': feedbackHistory,
+    };
+  }
+}
+
+// ✅ ADD THIS BELOW
+
+class EmpathyScore {
+  final String date;
+  final int listening;
+  final int supportiveness;
+  final int empathyLevel;
+  final Map<String, dynamic> toneAwareness;
+
+  EmpathyScore({
+    required this.date,
+    required this.listening,
+    required this.supportiveness,
+    required this.empathyLevel,
+    required this.toneAwareness,
+  });
+
+  factory EmpathyScore.fromMap(Map<String, dynamic> map, String date) {
+    return EmpathyScore(
+      date: date,
+      listening: map['listening'] ?? 0,
+      supportiveness: map['supportiveness'] ?? 0,
+      empathyLevel: map['empathyLevel'] ?? 0,
+      toneAwareness: Map<String, dynamic>.from(map['toneAwareness'] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'date': date,
+      'listening': listening,
+      'supportiveness': supportiveness,
+      'empathyLevel': empathyLevel,
+      'toneAwareness': toneAwareness,
     };
   }
 }
