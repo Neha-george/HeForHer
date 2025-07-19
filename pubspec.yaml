@@ -51,6 +51,6 @@ flutter:
     - assets/images/
     - assets/env/
 flutter_local_notifications:
-  platform:
+  platforms:
     linux:
       default_package: none
