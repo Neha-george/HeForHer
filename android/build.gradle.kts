@@ -1,17 +1,15 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// android/build.gradle.kts
 
-plugins {
-    id("com.android.application") version "7.4.2" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
-}
-
-allprojects {
+buildscript {
     repositories {
         google()
         mavenCentral()
     }
 }
 
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
+plugins {
+    id("com.android.application") version "8.1.2" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.10" apply false
+    // ✅ ✅ Remove this line if it exists:
+    // id("dev.flutter.flutter-gradle-plugin") version "1.0.0" apply false
 }

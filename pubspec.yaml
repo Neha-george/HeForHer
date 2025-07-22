@@ -25,7 +25,7 @@ dependencies:
   fl_chart: ^0.60.0
 
   # 🔔 Notifications
-  flutter_local_notifications: ^12.0.4
+  flutter_local_notifications: ^17.2.3
   timezone: ^0.9.0
 
   # 🌐 Env & HTTP
@@ -50,7 +50,7 @@ flutter:
     - assets/audio/
     - assets/images/
     - assets/env/
-flutter_local_notifications:
-  platforms:
-    linux:
-      default_package: none
+
+# Override Linux dependency to prevent errors since we don't need Linux support
+dependency_overrides:
+  flutter_local_notifications_linux: any
